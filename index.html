@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R Data Analytics Workshop at NTPU, 2022</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Ying-Ju Tessa Chen, PhD    Ying-Ju   ychen4@udayton.edu " />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <script src="libs/plotly-binding/plotly.js"></script>
+    <script src="libs/typedarray/typedarray.min.js"></script>
+    <script src="libs/jquery/jquery.min.js"></script>
+    <link href="libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+    <script src="libs/crosstalk/js/crosstalk.min.js"></script>
+    <link href="libs/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+    <script src="libs/plotly-main/plotly-latest.min.js"></script>
+    <script src="https://use.fontawesome.com/5235085b15.js"></script>
+    <link rel="shortcut icon" href="figures/logo.jpg" />
+    <link rel="stylesheet" href="css/my-theme.css" type="text/css" />
+    <link rel="stylesheet" href="css/my-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R Data Analytics Workshop at NTPU, 2022
+### <br>Ying-Ju Tessa Chen, PhD
+<br><a href="https://github.com/Ying-Ju"><i class="fa fa-github fa-fw"></i> 
+Ying-Ju</a><br><a href="mailto:ychen4@udayton.edu"><i class="fa fa-paper-plane fa-fw"></i> 
+ychen4@udayton.edu</a><br>
+### <br> June 20 &amp; 21, 2022
+
+---
+
+
+
+
+
+
+
+
+## README
+
+We facilitated a two-day workshop of R data analytics at the National Taipei University in June 2022. To the extent possible, the content of the lectures are recorded here. The lectures are based on [R for Data Science](https://r4ds.had.co.nz/). 
+
+### Table of Content
+
+- [Data Manipulation](#manipulation)
+
+- [Data Visualization](#visualization)
+
+- [Data Exploration](#exploration)
+
+- [R Markdown Presentations](#rmarkdown)
+
+- [Introduction to GitHub](#github)
+
+---
+name: manipulation
+
+# Session 1: Data Manipulation
+
+In this session, we will talk about data manipulation using R package &lt;span Style="Color:red"&gt;tidyverse&lt;/span&gt;. This package contains a collection of R packages that help us doing data management &amp; exploration. The key packages in tidyverse are:
+
+  - dplyr: data manipulation
+  
+  - ggplot2: data visualization 
+  
+  - purr: functional programming toolkit
+  
+  - readr: read data and write files
+  
+  - tibble: simple data frame
+  
+  - tidyr: data management
+
+---
+## Key packages included in tidyverse
+
+We will focus on the following key functions in &lt;span Style="Color:red"&gt;dplyr&lt;/span&gt; using the dataset **flights** from the R package &lt;span Style="color:red"&gt;nycflights13&lt;/span&gt;.
+
+  - filter(): pick observations by their values
+  
+  - arrange(): reorder the rows
+  
+  - select(): select variables by their names
+  
+  - mutate(): create new variables with functions of existing variables 
+  - group_by(): group data by existing variables
+  
+  - summarize(): collapse many values done to a single summary (with group_by)
+
+---
+## How the functions in dplyr work
+
+All functions above work similarly. 
+
+1. The first argument is a data frame.
+
+2. The subsequent arguments describe what to do with the data frame using the variable names.
+
+3. The result is a new data frame (but we can save it back to the original data frame if needed).
+
+
+---
+## Load packages and read the Flights Data
+
+First, we load the necessary packages, check conflict functions, and import the dataset **flights** from the R package &lt;span Style="color:red"&gt;nycflights13&lt;/span&gt;. 
+
+
+```r
+library(tidyverse)
+library(conflicted)
+conflict_prefer("select", "dplyr")
+conflict_prefer("filter", "dplyr")
+df &lt;- nycflights13::flights
+```
+
+
+---
+## Understanding the Flights data
+
+[Flights Data](https://rdrr.io/cran/nycflights13/man/flights.html) provides on-time data for all flights that departed NYC (i.e. JFK, LGA or EWR) in 2013 and there are 19 variables. 
+
+- year, month, day: Date of departure.
+- dep_time, arr_time: Actual departure and arrival times (format HHMM or HMM), local time zone.
+- sched_dep_time, sched_arr_time: Scheduled departure and arrival times (format HHMM or HMM), local time zone.
+- dep_delay, arr_delay: Departure and arrival delays, in minutes. Negative times represent early departures/arrivals.
+- carrier: Two letter carrier abbreviation. See airlines to get name.
+- flight: Flight number.
+- tailnum: Plane tail number. See planes for additional metadata.
+- origin, dest: Origin and destination. See airports for additional metadata.
+- air_time: Amount of time spent in the air, in minutes.
+- distance: Distance between airports, in miles.
+- hour, minute: Time of scheduled departure broken into hour and minutes.
+- time_hour: Scheduled date and hour of the flight as a POSIXct date. Along with origin, can be used to join flights data to weather data.
+
+---
+## Get a glimpse of the data
+
+
+```r
+glimpse(df)
+```
+
+```
+## Rows: 336,776
+## Columns: 19
+## $ year           &lt;int&gt; 2013, 2013, 2013, 2013, 2013, 2013, 2013, 2013, 2013, 2~
+## $ month          &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1~
+## $ day            &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1~
+## $ dep_time       &lt;int&gt; 517, 533, 542, 544, 554, 554, 555, 557, 557, 558, 558, ~
+## $ sched_dep_time &lt;int&gt; 515, 529, 540, 545, 600, 558, 600, 600, 600, 600, 600, ~
+## $ dep_delay      &lt;dbl&gt; 2, 4, 2, -1, -6, -4, -5, -3, -3, -2, -2, -2, -2, -2, -1~
+## $ arr_time       &lt;int&gt; 830, 850, 923, 1004, 812, 740, 913, 709, 838, 753, 849,~
+## $ sched_arr_time &lt;int&gt; 819, 830, 850, 1022, 837, 728, 854, 723, 846, 745, 851,~
+## $ arr_delay      &lt;dbl&gt; 11, 20, 33, -18, -25, 12, 19, -14, -8, 8, -2, -3, 7, -1~
+## $ carrier        &lt;chr&gt; "UA", "UA", "AA", "B6", "DL", "UA", "B6", "EV", "B6", "~
+## $ flight         &lt;int&gt; 1545, 1714, 1141, 725, 461, 1696, 507, 5708, 79, 301, 4~
+## $ tailnum        &lt;chr&gt; "N14228", "N24211", "N619AA", "N804JB", "N668DN", "N394~
+## $ origin         &lt;chr&gt; "EWR", "LGA", "JFK", "JFK", "LGA", "EWR", "EWR", "LGA",~
+## $ dest           &lt;chr&gt; "IAH", "IAH", "MIA", "BQN", "ATL", "ORD", "FLL", "IAD",~
+## $ air_time       &lt;dbl&gt; 227, 227, 160, 183, 116, 150, 158, 53, 140, 138, 149, 1~
+## $ distance       &lt;dbl&gt; 1400, 1416, 1089, 1576, 762, 719, 1065, 229, 944, 733, ~
+## $ hour           &lt;dbl&gt; 5, 5, 5, 5, 6, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 6, 6, 6~
+## $ minute         &lt;dbl&gt; 15, 29, 40, 45, 0, 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 0~
+## $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-01 0~
+```
+
+---
+## filter() function
+
+&lt;span Style="color:blue"&gt;filter()&lt;/span&gt; is used when we want to subset observations based on a logical condition. For example, we can select all fights on December 25th using the following code. 
+
+
+```r
+filter(df, month == 12, day == 25)
+```
+
+```
+## # A tibble: 719 x 19
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013    12    25      456            500        -4      649            651
+##  2  2013    12    25      524            515         9      805            814
+##  3  2013    12    25      542            540         2      832            850
+##  4  2013    12    25      546            550        -4     1022           1027
+##  5  2013    12    25      556            600        -4      730            745
+##  6  2013    12    25      557            600        -3      743            752
+##  7  2013    12    25      557            600        -3      818            831
+##  8  2013    12    25      559            600        -1      855            856
+##  9  2013    12    25      559            600        -1      849            855
+## 10  2013    12    25      600            600         0      850            846
+## # ... with 709 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+```r
+Christmas &lt;- filter(df, month == 12, day == 25)
+```
+
+
+---
+## Comparisons
+
+R provides the standard suite: &lt;, &lt;=, &gt;, &gt;=, != (not equal), and == (equal). 
+
+If we would like to save the results to a variable as well as print them, we can wrap the assignment in parentheses
+
+
+```r
+(Jan1 &lt;- filter(df, month == 1, day == 1)) 
+```
+
+```
+## # A tibble: 842 x 19
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013     1     1      517            515         2      830            819
+##  2  2013     1     1      533            529         4      850            830
+##  3  2013     1     1      542            540         2      923            850
+##  4  2013     1     1      544            545        -1     1004           1022
+##  5  2013     1     1      554            600        -6      812            837
+##  6  2013     1     1      554            558        -4      740            728
+##  7  2013     1     1      555            600        -5      913            854
+##  8  2013     1     1      557            600        -3      709            723
+##  9  2013     1     1      557            600        -3      838            846
+## 10  2013     1     1      558            600        -2      753            745
+## # ... with 832 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+
+---
+## Logical Operations
+
+R provides the following syntax: &amp; is "and", | is "or", ! is "not". The following code finds all flights that departed in July or August. 
+
+
+```r
+filter(df, month == 7 | month == 8)
+```
+
+```
+## # A tibble: 58,752 x 19
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013     7     1        1           2029       212      236           2359
+##  2  2013     7     1        2           2359         3      344            344
+##  3  2013     7     1       29           2245       104      151              1
+##  4  2013     7     1       43           2130       193      322             14
+##  5  2013     7     1       44           2150       174      300            100
+##  6  2013     7     1       46           2051       235      304           2358
+##  7  2013     7     1       48           2001       287      308           2305
+##  8  2013     7     1       58           2155       183      335             43
+##  9  2013     7     1      100           2146       194      327             30
+## 10  2013     7     1      100           2245       135      337            135
+## # ... with 58,742 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+
+```r
+filter(df, month %in% c(7, 8))
+```
+
+
+
+---
+
+**Note:** 
+  
+1. If we use &lt;span Style="color:blue"&gt;filter(df, month == 7 | 8)&lt;/span&gt;, it finds all months are equal 7 | 8, an expression that evaluates to **TRUE**. In a numeric context, TRUE becomes one, so this finds all fights in the data. 
+
+2. &lt;span Style="color:blue"&gt;filter()&lt;/span&gt; only includes rows where the condition is **TRUE** and it excludes both FALSE and NA values. 
+
+If we want to find flights that weren't delayed on both arrival and departure by more than 1 hour, we could use either of the following codes. 
+
+
+```r
+filter(df, !(arr_delay &gt; 60 | dep_delay &gt; 60))
+```
+
+```
+## # A tibble: 295,893 x 19
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013     1     1      517            515         2      830            819
+##  2  2013     1     1      533            529         4      850            830
+##  3  2013     1     1      542            540         2      923            850
+##  4  2013     1     1      544            545        -1     1004           1022
+##  5  2013     1     1      554            600        -6      812            837
+##  6  2013     1     1      554            558        -4      740            728
+##  7  2013     1     1      555            600        -5      913            854
+##  8  2013     1     1      557            600        -3      709            723
+##  9  2013     1     1      557            600        -3      838            846
+## 10  2013     1     1      558            600        -2      753            745
+## # ... with 295,883 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+
+```r
+filter(df, arr_delay &lt;= 60, dep_delay &lt;= 60)
+```
+
+---
+## arrange() function
+
+&lt;span Style="color:blue"&gt;arrange()&lt;/span&gt; is used when we want to sort a dataset by a variable. If more variables are specified for sorting a dataset, the variables entered first taking priority over those come later. The following code chunk gives an example that sorts the flights by dates.  
+
+
+```r
+arrange(df, year, month, day)
+```
+
+```
+## # A tibble: 336,776 x 19
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013     1     1      517            515         2      830            819
+##  2  2013     1     1      533            529         4      850            830
+##  3  2013     1     1      542            540         2      923            850
+##  4  2013     1     1      544            545        -1     1004           1022
+##  5  2013     1     1      554            600        -6      812            837
+##  6  2013     1     1      554            558        -4      740            728
+##  7  2013     1     1      555            600        -5      913            854
+##  8  2013     1     1      557            600        -3      709            723
+##  9  2013     1     1      557            600        -3      838            846
+## 10  2013     1     1      558            600        -2      753            745
+## # ... with 336,766 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+---
+
+**Note:** 
+  
+1. We can save the data frame back to the original data frame after sorting the data.
+
+2. Use &lt;span Style=:color:blue&gt;desc()&lt;/span&gt; for sorting data via descending order. The following code chunk arranges the Flights Data by arrival delay in descending order.
+
+3. Missing values are always sorted at the end.
+
+
+---
+
+
+```r
+result_arrange &lt;- arrange(df, desc(arr_delay))
+head(select(result_arrange, arr_delay, everything()))
+```
+
+```
+## # A tibble: 6 x 19
+##   arr_delay  year month   day dep_time sched_dep_time dep_delay arr_time
+##       &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;
+## 1      1272  2013     1     9      641            900      1301     1242
+## 2      1127  2013     6    15     1432           1935      1137     1607
+## 3      1109  2013     1    10     1121           1635      1126     1239
+## 4      1007  2013     9    20     1139           1845      1014     1457
+## 5       989  2013     7    22      845           1600      1005     1044
+## 6       931  2013     4    10     1100           1900       960     1342
+## # ... with 11 more variables: sched_arr_time &lt;int&gt;, carrier &lt;chr&gt;,
+## #   flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;, air_time &lt;dbl&gt;,
+## #   distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+```r
+tail(select(result_arrange, arr_delay, everything()))
+```
+
+```
+## # A tibble: 6 x 19
+##   arr_delay  year month   day dep_time sched_dep_time dep_delay arr_time
+##       &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;
+## 1        NA  2013     9    30       NA           1842        NA       NA
+## 2        NA  2013     9    30       NA           1455        NA       NA
+## 3        NA  2013     9    30       NA           2200        NA       NA
+## 4        NA  2013     9    30       NA           1210        NA       NA
+## 5        NA  2013     9    30       NA           1159        NA       NA
+## 6        NA  2013     9    30       NA            840        NA       NA
+## # ... with 11 more variables: sched_arr_time &lt;int&gt;, carrier &lt;chr&gt;,
+## #   flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;, air_time &lt;dbl&gt;,
+## #   distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+
+---
+## select() function
+
+&lt;span Style="color:blue"&gt;select()&lt;/span&gt; is used when we would like to obtain several variables in the data. For example, we can use the following code chunk to select the Flights Data with only a few variables. 
+
+
+```r
+# select specific columns
+select(df, year, month, day)
+
+# select all columns between year and day
+select(df, year:day) 
+
+# select all columns except those from year and day
+select(df, -(year:day)) 
+```
+
+
+**Note:**
+1. We can use a minus sign - to drop variables. 
+2. There are several helper functions we can use within &lt;span Style="color:blue"&gt;select()&lt;/span&gt;. See &lt;span Style="color:blue"&gt;?select&lt;/span&gt; for the information. 
+3. &lt;span Style="color:blue"&gt;select()&lt;/span&gt; can be used with the &lt;span Style="color:blue"&gt;everything()&lt;/span&gt; function when we have a handful of variables we would like to move to the start of the data frame. 
+
+
+---
+
+
+```r
+# move carrier, origin, dest, and distance to the start of the data
+select(df, carrier, origin, dest, distance, everything())
+```
+
+```
+## # A tibble: 336,776 x 19
+##    carrier origin dest  distance  year month   day dep_time sched_dep_time
+##    &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;
+##  1 UA      EWR    IAH       1400  2013     1     1      517            515
+##  2 UA      LGA    IAH       1416  2013     1     1      533            529
+##  3 AA      JFK    MIA       1089  2013     1     1      542            540
+##  4 B6      JFK    BQN       1576  2013     1     1      544            545
+##  5 DL      LGA    ATL        762  2013     1     1      554            600
+##  6 UA      EWR    ORD        719  2013     1     1      554            558
+##  7 B6      EWR    FLL       1065  2013     1     1      555            600
+##  8 EV      LGA    IAD        229  2013     1     1      557            600
+##  9 B6      JFK    MCO        944  2013     1     1      557            600
+## 10 AA      LGA    ORD        733  2013     1     1      558            600
+## # ... with 336,766 more rows, and 10 more variables: dep_delay &lt;dbl&gt;,
+## #   arr_time &lt;int&gt;, sched_arr_time &lt;int&gt;, arr_delay &lt;dbl&gt;, flight &lt;int&gt;,
+## #   tailnum &lt;chr&gt;, air_time &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+
+---
+## mutate() function
+  
+&lt;span Style="color:blue"&gt;mutate()&lt;/span&gt; is used when we would like to add a new variable / column using the other variables in the data. 
+
+**Note:**  &lt;span Style="color:blue"&gt;mutate()&lt;/span&gt; always adds new columns at the end of the data. 
+
+First, we start by creating a smaller dataset with a few variables.
+
+
+```r
+# we start by creating a smaller dataset.
+df1 &lt;- select(df, year:day, ends_with("delay"), distance, air_time)
+```
+
+---
+
+We create four variables using variables in the data. 
+
+
+```r
+mutate(df1, 
+       gain= arr_delay - dep_delay, 
+       speed = distance / air_time * 60,
+       hours = air_time / 60,
+       gain_per_hour = gain / hours)
+```
+
+```
+## # A tibble: 336,776 x 11
+##     year month   day dep_delay arr_delay distance air_time  gain speed hours
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  2013     1     1         2        11     1400      227     9  370. 3.78 
+##  2  2013     1     1         4        20     1416      227    16  374. 3.78 
+##  3  2013     1     1         2        33     1089      160    31  408. 2.67 
+##  4  2013     1     1        -1       -18     1576      183   -17  517. 3.05 
+##  5  2013     1     1        -6       -25      762      116   -19  394. 1.93 
+##  6  2013     1     1        -4        12      719      150    16  288. 2.5  
+##  7  2013     1     1        -5        19     1065      158    24  404. 2.63 
+##  8  2013     1     1        -3       -14      229       53   -11  259. 0.883
+##  9  2013     1     1        -3        -8      944      140    -5  405. 2.33 
+## 10  2013     1     1        -2         8      733      138    10  319. 2.3  
+## # ... with 336,766 more rows, and 1 more variable: gain_per_hour &lt;dbl&gt;
+```
+
+---
+
+If we want to keep only the new variables, use &lt;span Style="color:blue"&gt;transmute()&lt;/span&gt;. 
+
+
+```r
+transmute(df1, 
+          gain= arr_delay - dep_delay, 
+          speed = distance / air_time * 60,
+          hours = air_time / 60,
+          gain_per_hour = gain / hours)
+```
+
+```
+## # A tibble: 336,776 x 4
+##     gain speed hours gain_per_hour
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;         &lt;dbl&gt;
+##  1     9  370. 3.78           2.38
+##  2    16  374. 3.78           4.23
+##  3    31  408. 2.67          11.6 
+##  4   -17  517. 3.05          -5.57
+##  5   -19  394. 1.93          -9.83
+##  6    16  288. 2.5            6.4 
+##  7    24  404. 2.63           9.11
+##  8   -11  259. 0.883        -12.5 
+##  9    -5  405. 2.33          -2.14
+## 10    10  319. 2.3            4.35
+## # ... with 336,766 more rows
+```
+
+**Note:** There are many functions for creating new variables that we can use with &lt;span Style="color:blue"&gt;mutate()&lt;/span&gt;. The key property is that the function must be vectorized, which means it must take a vector of values as input and returns a vector with the same number of values as output. 
+
+---
+## group_by() &amp; summarize() functions
+  
+&lt;span Style="color:blue"&gt;summarize()&lt;/span&gt; collapses a data frame to a single row. For example, we can summarize the average departure delays using the following code chunk.
+
+
+```r
+summarize(df, delay = mean(dep_delay, na.rm=T))
+```
+
+```
+## # A tibble: 1 x 1
+##   delay
+##   &lt;dbl&gt;
+## 1  12.6
+```
+
+
+---
+
+In general, &lt;span Style="color:blue"&gt;summarize()&lt;/span&gt; function is used together with &lt;span Style="color:blue"&gt;group_by()&lt;/span&gt; as we group rows for some purposes. &lt;span Style="color:blue"&gt;group_by()&lt;/span&gt; is used to group rows by one or more variables, giving priority to the variable entered first. 
+
+
+
+```r
+group_by(df, year, month, day)
+```
+
+```
+## # A tibble: 336,776 x 19
+## # Groups:   year, month, day [365]
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013     1     1      517            515         2      830            819
+##  2  2013     1     1      533            529         4      850            830
+##  3  2013     1     1      542            540         2      923            850
+##  4  2013     1     1      544            545        -1     1004           1022
+##  5  2013     1     1      554            600        -6      812            837
+##  6  2013     1     1      554            558        -4      740            728
+##  7  2013     1     1      555            600        -5      913            854
+##  8  2013     1     1      557            600        -3      709            723
+##  9  2013     1     1      557            600        -3      838            846
+## 10  2013     1     1      558            600        -2      753            745
+## # ... with 336,766 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+The result shows the original data but indicates groups: year, month, day, in our example. 
+
+
+---
+
+For example, we can study the average departure / arrival delays for each day. 
+
+
+```r
+by_day &lt;- group_by(df, year, month, day) 
+summarize(by_day, 
+          ave_dep_delay = mean(dep_delay, na.rm = T),
+          ave_arr_delay = mean(arr_delay, na.rm = T)
+)
+```
+
+```
+## # A tibble: 365 x 5
+## # Groups:   year, month [12]
+##     year month   day ave_dep_delay ave_arr_delay
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;         &lt;dbl&gt;         &lt;dbl&gt;
+##  1  2013     1     1         11.5         12.7  
+##  2  2013     1     2         13.9         12.7  
+##  3  2013     1     3         11.0          5.73 
+##  4  2013     1     4          8.95        -1.93 
+##  5  2013     1     5          5.73        -1.53 
+##  6  2013     1     6          7.15         4.24 
+##  7  2013     1     7          5.42        -4.95 
+##  8  2013     1     8          2.55        -3.23 
+##  9  2013     1     9          2.28        -0.264
+## 10  2013     1    10          2.84        -5.90 
+## # ... with 355 more rows
+```
+
+---
+## Combining Multiple Operations with the Pipe
+
+In other to handle the data processing well in data science, it is essential to know the use of pipes. Pipes are great tool for presenting a sequence of multiple operations and therefore, pipes increase readability of the code. The pipe, %&gt;%, is from the package &lt;span Style="color:red"&gt;magrittr&lt;/span&gt; and it is loaded automatically when tidyverse is loaded. 
+
+The logic when using pipe: object %&gt;% function1 %&gt;% function 2.... 
+
+
+If we want to group the Flights Data by the destination and then find the number of flights, the average distance, the average arrival delay at each destination, and filter to remove Honolulu airport (HNL), we may use the following code chunk to achieve this. 
+
+
+```r
+by_dest &lt;- group_by(df, dest)
+delay &lt;- summarize(by_dest,
+                   count = n(),
+                   ave_dist = mean(distance, na.rm=T),
+                   ave_arr_delay = mean(arr_delay, na.rm=T)
+)
+delay &lt;- filter(delay, count &gt; 20, dest != "HNL")
+```
+
+---
+
+The following code chunk does the same task on the previous slide with the pipe, %&gt;% and it makes the code easier to read. 
+
+
+```r
+delay &lt;- df %&gt;% 
+  group_by(dest) %&gt;%
+  summarize(
+    count = n(),
+    ave_dist = mean(distance, na.rm=T),
+    ave_arr_delay = mean(arr_delay, na.rm=T)
+  ) %&gt;%
+  filter(count &gt; 20, dest != "HNL")
+
+delay
+```
+
+```
+## # A tibble: 96 x 4
+##    dest  count ave_dist ave_arr_delay
+##    &lt;chr&gt; &lt;int&gt;    &lt;dbl&gt;         &lt;dbl&gt;
+##  1 ABQ     254    1826           4.38
+##  2 ACK     265     199           4.85
+##  3 ALB     439     143          14.4 
+##  4 ATL   17215     757.         11.3 
+##  5 AUS    2439    1514.          6.02
+##  6 AVL     275     584.          8.00
+##  7 BDL     443     116           7.05
+##  8 BGR     375     378           8.03
+##  9 BHM     297     866.         16.9 
+## 10 BNA    6333     758.         11.8 
+## # ... with 86 more rows
+```
+
+---
+## Useful Summary Functions
+
+- Measures of location for a quantitative variable: &lt;span Style="color:blue"&gt; mean()&lt;/span&gt;, &lt;span Style="color:blue"&gt; median()&lt;/span&gt;
+  
+- Measure of spread for a quantitative variable: &lt;span Style="color:blue"&gt;sd()&lt;/span&gt;, &lt;span Style="color:blue"&gt; IQR()&lt;/span&gt;, &lt;span Style="color:blue"&gt;mad()&lt;/span&gt;
+  
+Here, `\(MAD = median(|x_i-\bar{x}|)\)` is called the median absolute deviation which may be more useful if we have outliers. 
+
+
+
+```r
+not_cancelled &lt;- df %&gt;% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+not_cancelled %&gt;% 
+  group_by(dest) %&gt;%
+  summarize(
+    distance_mu = mean(distance),
+    distance_sd = sd(distance)) %&gt;%
+  arrange(desc(distance_sd)) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 3
+##   dest  distance_mu distance_sd
+##   &lt;chr&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+## 1 EGE         1736.       10.5 
+## 2 SAN         2437.       10.4 
+## 3 SFO         2578.       10.2 
+## 4 HNL         4973.       10.0 
+## 5 SEA         2413.        9.98
+## 6 LAS         2241.        9.91
+```
+
+---
+
+- Measures of rank: &lt;span Style="color:blue"&gt;min()&lt;/span&gt;, &lt;span Style="color:blue"&gt;quantile()&lt;/span&gt;, &lt;span Style="color:blue"&gt;max()&lt;/span&gt;
+  
+
+```r
+not_cancelled %&gt;%
+  group_by(year, month, day) %&gt;%
+  summarize(
+    first = min(dep_time), # the first flight departed each day
+    last = max(dep_time) # the last flight departed each day
+  ) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 5
+## # Groups:   year, month [1]
+##    year month   day first  last
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
+## 1  2013     1     1   517  2356
+## 2  2013     1     2    42  2354
+## 3  2013     1     3    32  2349
+## 4  2013     1     4    25  2358
+## 5  2013     1     5    14  2357
+## 6  2013     1     6    16  2355
+```
+
+---
+
+- Measures of position: &lt;span Style="color:blue"&gt;first()&lt;/span&gt;, &lt;span Style="color:blue"&gt;nth(x, 2)&lt;/span&gt;, &lt;span Style="color:blue"&gt;last()&lt;/span&gt;
+  
+The following code chunk finds the first and last departure for each day.
+
+
+```r
+not_cancelled %&gt;%
+  group_by(year, month, day) %&gt;%
+  summarize(
+    first_dep = first(dep_time),
+    last_dep = last(dep_time)
+  ) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 5
+## # Groups:   year, month [1]
+##    year month   day first_dep last_dep
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;int&gt;    &lt;int&gt;
+## 1  2013     1     1       517     2356
+## 2  2013     1     2        42     2354
+## 3  2013     1     3        32     2349
+## 4  2013     1     4        25     2358
+## 5  2013     1     5        14     2357
+## 6  2013     1     6        16     2355
+```
+
+---
+
+- Counts: We have seen &lt;span Style="color:blue"&gt;n()&lt;/span&gt;, which takes no arguments, and returns the size of the current group. To count the number of non-missing values, we can use &lt;span Style="color:blue"&gt;sum(is.na(x))&lt;/span&gt;. To count the number of distinct values, use &lt;span Style="color:blue"&gt;n_distinct()&lt;/span&gt;.
+
+
+```r
+not_cancelled %&gt;%
+  group_by(dest) %&gt;%
+  summarize(carriers = n_distinct(carrier)) %&gt;%
+  arrange(desc(carriers)) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 2
+##   dest  carriers
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 ATL          7
+## 2 BOS          7
+## 3 CLT          7
+## 4 ORD          7
+## 5 TPA          7
+## 6 AUS          6
+```
+
+---
+
+We can use &lt;span Style="color:blue"&gt;count()&lt;/span&gt; directly if all we want is a count. 
+
+
+
+```r
+not_cancelled %&gt;% 
+  count(dest) %&gt;% 
+  head(5)
+```
+
+```
+## # A tibble: 5 x 2
+##   dest      n
+##   &lt;chr&gt; &lt;int&gt;
+## 1 ABQ     254
+## 2 ACK     264
+## 3 ALB     418
+## 4 ANC       8
+## 5 ATL   16837
+```
+
+We can optionally provide a weight variable. For example we could use this to "count" the total number of miles a plane flew.
+
+
+```r
+not_cancelled %&gt;%
+  count(tailnum, wt = distance) %&gt;% 
+  head(5)
+```
+
+```
+## # A tibble: 5 x 2
+##   tailnum      n
+##   &lt;chr&gt;    &lt;dbl&gt;
+## 1 D942DN    3418
+## 2 N0EGMQ  239143
+## 3 N10156  109664
+## 4 N102UW   25722
+## 5 N103US   24619
+```
+
+---
+
+- Counts and proportions of logical values
+
+When used with numeric functions, TRUE is converted to 1 and FALSE to 0. Thus, &lt;span Style="color:blue"&gt;sum()&lt;/span&gt; gives the number of TRUEs and &lt;span Style="color:blue"&gt;mean()&lt;/span&gt; gives the proportion in the variable. For example, we can check how many flights left before 5AM using the following code chunk. 
+
+
+```r
+not_cancelled %&gt;%
+  group_by(year, month, day) %&gt;%
+  summarize(n_early = sum(dep_time &lt; 500)) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 4
+## # Groups:   year, month [1]
+##    year month   day n_early
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;   &lt;int&gt;
+## 1  2013     1     1       0
+## 2  2013     1     2       3
+## 3  2013     1     3       4
+## 4  2013     1     4       3
+## 5  2013     1     5       3
+## 6  2013     1     6       2
+```
+
+---
+
+Or what proportion of flights are delayed by more than one hour?
+  
+
+```r
+not_cancelled %&gt;%
+  group_by(year, month, day) %&gt;%
+  summarize(hour_perc = mean(arr_delay &gt; 60)) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 4
+## # Groups:   year, month [1]
+##    year month   day hour_perc
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;
+## 1  2013     1     1    0.0722
+## 2  2013     1     2    0.0851
+## 3  2013     1     3    0.0567
+## 4  2013     1     4    0.0396
+## 5  2013     1     5    0.0349
+## 6  2013     1     6    0.0470
+```
+
+---
+## Grouping by Multiple Variables
+
+Here we show some examples to demonstrate how to group the data by multiple variables. 
+
+
+```r
+per_day &lt;- df %&gt;% 
+    group_by(year, month, day) %&gt;%
+    summarize(flights = n())
+
+per_day %&gt;% head()
+```
+
+```
+## # A tibble: 6 x 4
+## # Groups:   year, month [1]
+##    year month   day flights
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;   &lt;int&gt;
+## 1  2013     1     1     842
+## 2  2013     1     2     943
+## 3  2013     1     3     914
+## 4  2013     1     4     915
+## 5  2013     1     5     720
+## 6  2013     1     6     832
+```
+
+---
+
+
+```r
+per_month &lt;- summarize(per_day, flights = sum(flights))
+
+per_month %&gt;% head()
+```
+
+```
+## # A tibble: 6 x 3
+## # Groups:   year [1]
+##    year month flights
+##   &lt;int&gt; &lt;int&gt;   &lt;int&gt;
+## 1  2013     1   27004
+## 2  2013     2   24951
+## 3  2013     3   28834
+## 4  2013     4   28330
+## 5  2013     5   28796
+## 6  2013     6   28243
+```
+
+```r
+per_year &lt;- summarize(per_month, flights = sum(flights))
+
+per_year
+```
+
+```
+## # A tibble: 1 x 2
+##    year flights
+##   &lt;int&gt;   &lt;int&gt;
+## 1  2013  336776
+```
+
+
+---
+## Ungrouping
+
+If we need to remove grouping, and return to operations on ungrouped data, use &lt;span Style="color:blue"&gt;ungroup()&lt;/span&gt;.
+
+
+```r
+daily &lt;- df %&gt;% group_by(year, month, day)
+daily %&gt;% 
+  ungroup() %&gt;% # no longer grouped by date
+  summarize(flights=n()) # all flights
+```
+
+```
+## # A tibble: 1 x 1
+##   flights
+##     &lt;int&gt;
+## 1  336776
+```
+
+
+---
+## Grouped Mutates and Filters
+
+We can also do convenient operations with &lt;span Style="color:blue"&gt;mutate()&lt;/span&gt; and &lt;span Style="color:blue"&gt;filter()&lt;/span&gt;.
+
+The following code chunk finds the worst members of each group. 
+
+```r
+df1 %&gt;% 
+  group_by(year, month, day) %&gt;% 
+  filter(rank(desc(arr_delay)) &lt; 10) %&gt;% 
+  head()
+```
+
+```
+## # A tibble: 6 x 7
+## # Groups:   year, month, day [1]
+##    year month   day dep_delay arr_delay distance air_time
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1  2013     1     1       853       851      184       41
+## 2  2013     1     1       290       338     1134      213
+## 3  2013     1     1       260       263      266       46
+## 4  2013     1     1       157       174      213       60
+## 5  2013     1     1       216       222      708      121
+## 6  2013     1     1       255       250      589      115
+```
+
+---
+
+The following code chunk finds all groups bigger than a threshold. 
+
+
+```r
+popular_dests &lt;- df %&gt;%
+  group_by(dest) %&gt;% 
+  filter(n()&gt;365)
+
+popular_dests %&gt;% head()
+```
+
+```
+## # A tibble: 6 x 19
+## # Groups:   dest [5]
+##    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+## 1  2013     1     1      517            515         2      830            819
+## 2  2013     1     1      533            529         4      850            830
+## 3  2013     1     1      542            540         2      923            850
+## 4  2013     1     1      544            545        -1     1004           1022
+## 5  2013     1     1      554            600        -6      812            837
+## 6  2013     1     1      554            558        -4      740            728
+## # ... with 11 more variables: arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;,
+## #   tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;, air_time &lt;dbl&gt;, distance &lt;dbl&gt;,
+## #   hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+
+---
+
+The following code chunk standardizes to compute per group metrics. 
+
+
+```r
+popular_dests %&gt;% 
+  filter(arr_delay &gt; 0) %&gt;% 
+  mutate(prop_delay = arr_delay / sum(arr_delay)) %&gt;% 
+  select(year:day, arr_delay, prop_delay) %&gt;%
+  head()
+```
+
+```
+## # A tibble: 6 x 6
+## # Groups:   dest [4]
+##   dest   year month   day arr_delay prop_delay
+##   &lt;chr&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 IAH    2013     1     1        11  0.000111 
+## 2 IAH    2013     1     1        20  0.000201 
+## 3 MIA    2013     1     1        33  0.000235 
+## 4 ORD    2013     1     1        12  0.0000424
+## 5 FLL    2013     1     1        19  0.0000938
+## 6 ORD    2013     1     1         8  0.0000283
+```
+
+
+---
+name: visualization
+
+# Section 2: Data Visualization with ggplot2
+
+In this session, we will introduce how to visualize our data using &lt;span Style="color:red"&gt;ggplot2&lt;/span&gt; and &lt;span Style="color:red"&gt;plotly&lt;/span&gt;. The lecture is based on [UC Business Analytics R Programming Guide]( https://uc-r.github.io/ggplot_intro).
+
+While we can use the built-in functions in the base package in R to obtain plots, the package &lt;span Style="color:red"&gt;ggplot2&lt;/span&gt; creates advanced graphs with simple and flexible commands. 
+
+
+---
+## Load packages and read the Fuel Economy Data
+
+First, we load the necessary packages, check conflict functions, and get a glimpse of the dataset **mpg** from the R package &lt;span Style="color:red"&gt;ggplot2&lt;/span&gt;. 
+
+
+```r
+library(tidyverse)
+library(conflicted)
+conflict_prefer("lag", "dplyr")
+conflict_prefer("filter", "dplyr")
+glimpse(mpg)
+```
+
+```
+## Rows: 234
+## Columns: 11
+## $ manufacturer &lt;chr&gt; "audi", "audi", "audi", "audi", "audi", "audi", "audi", "~
+## $ model        &lt;chr&gt; "a4", "a4", "a4", "a4", "a4", "a4", "a4", "a4 quattro", "~
+## $ displ        &lt;dbl&gt; 1.8, 1.8, 2.0, 2.0, 2.8, 2.8, 3.1, 1.8, 1.8, 2.0, 2.0, 2.~
+## $ year         &lt;int&gt; 1999, 1999, 2008, 2008, 1999, 1999, 2008, 1999, 1999, 200~
+## $ cyl          &lt;int&gt; 4, 4, 4, 4, 6, 6, 6, 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 8, 8, ~
+## $ trans        &lt;chr&gt; "auto(l5)", "manual(m5)", "manual(m6)", "auto(av)", "auto~
+## $ drv          &lt;chr&gt; "f", "f", "f", "f", "f", "f", "f", "4", "4", "4", "4", "4~
+## $ cty          &lt;int&gt; 18, 21, 20, 21, 16, 18, 18, 18, 16, 20, 19, 15, 17, 17, 1~
+## $ hwy          &lt;int&gt; 29, 29, 31, 30, 26, 26, 27, 26, 25, 28, 27, 25, 25, 25, 2~
+## $ fl           &lt;chr&gt; "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p~
+## $ class        &lt;chr&gt; "compact", "compact", "compact", "compact", "compact", "c~
+```
+
+---
+
+Now we need to understand the data and each variable in the data. This dataset contains 38 popular models of cars from 1999 to 2008. [Fuel Economy Data](https://ggplot2.tidyverse.org/reference/mpg.html).
+
+- manufacturer:	car manufacturer	
+
+- model: model name	
+
+- displ: engine displacement, in liters	
+
+- year: year of manufacturing	(1999-2008)
+
+- cyl: number of cylinders
+
+- trans: type of transmission	
+
+- drv: drive type (f, r, 4, f=front wheel, r=rear wheel, 4=4 wheel)
+
+- cty: city mileage	miles per gallon
+
+- hwy: highway mileage miles per gallon
+
+- fl:	fuel type (diesel, petrol, electric, etc.)
+
+- class: vehicle class	7 types (compact, SUV, minivan etc.)
+
+
+---
+## Grammar of Graphics
+
+The basic idea of creating plots using &lt;span Style="color:red"&gt;ggplot2&lt;/span&gt; is to specify each component of the following and combine them with &lt;span Style="color:blue"&gt;+&lt;/span&gt;. 
+
+### ggplot() function
+
+&lt;span Style="color:blue"&gt;ggplot()&lt;/span&gt; function plays an important role in data visualization as it is very flexible for plotting many different types of graphic displays. 
+
+The logic when using &lt;span Style="color:blue"&gt;ggplot()&lt;/span&gt; function is: `(data, mapping) + geom_function()`.
+
+
+---
+## The Basics
+
+First, we see how &lt;span Style="color:blue"&gt;ggplot()&lt;/span&gt; function works by creating canvas and including variables.
+
+
+
+```r
+# need this package to create site-by-site plots
+library(patchwork)
+# create canvas
+p1 &lt;- ggplot(mpg)
+# variables of interest mapped
+p2 &lt;- ggplot(mpg, mapping = aes(x = displ, y = hwy))
+
+p1+p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/ggplot_basics-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+The following code chunk shows how we can obtain a scatter plot to study the relationship between engine displacement and highway mileage per gallon.
+
+
+```r
+# data plotted
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/ggplot_basics_1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+## Aesthetic Mappings
+
+The aesthetic mappings allow to select variables to be plotted and use data properties to influence visual characteristics such as color, size, shape, position, etc. As a result, each visual characteristic can encode a different part of the data and be utilized to communicate information.
+
+All aesthetics for a plot are specified in the &lt;span Style="color:blue"&gt;aes()&lt;/span&gt; function call. For example, we can add a mapping from the class of the cars to a color characteristic:
+  
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_color1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+**Note:** 
+  
+1. We should note that in the above code chunk, "class" is a variable in the data and therefore, the commend specifies a categorical variable is used as the third variable in the figure. 
+
+2. Using the &lt;span Style="color:red"&gt;aes()&lt;/span&gt; function will cause the visual channel to be based on the data specified in the argument. For example, using `aes(color = "blue")` won’t cause the geometry’s color to be “blue”, but will instead cause the visual channel to be mapped from the vector c("blue") — as if we only had a single type of engine that happened to be called “red”. If we wish to apply an aesthetic property to an entire geometry, we  can set that property as an argument to the geom method, outside of the &lt;span Style="color:red"&gt;aes()&lt;/span&gt; call.
+
+---
+  
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(color = "blue")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_color2-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+## Specifying Geometric Shapes
+
+Building on these basics, we can use &lt;span Style="color:red"&gt;ggplot2&lt;/span&gt; to create almost any kind of plot we may want. These plots are declared using functions that follow from the Grammar of Graphics. &lt;span Style="color:red"&gt;ggplot2&lt;/span&gt; supports a number of different types of geometric objects, including:
+  
+-	geom_bar(): bar charts
+- geom_boxplot(): boxplots
+-	geom_histogram(): histograms
+-	geom_line(): lines 
+-	geom_map(): polygons in the shape of a map. 
+-	geom_point(): individual points 
+-	geom_polygon(): arbitrary shapes
+-	geom_smooth(): smoothed lines 
+
+Each of these geometries will make use of the aesthetic mappings provided, albeit the visual qualities to which the data will be mapped will differ. For example, we can map data to the shape of a geom_point (e.g., if they should be circles or squares), or we can map data to the line-type of a geom_line (e.g., if it is solid or dotted), but not vice versa.
+
+---
+
+Almost all geoms require an x and y mapping at the bare minimum.
+
+
+
+```r
+# x and y mapping needed when creating a scatterplot
+p1 &lt;- ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point()
+
+p2 &lt;- ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_smooth()
+
+p1 + p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom1a-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+There is no y mapping needed when creating a bar chart or a histogram.
+
+
+```r
+p1 &lt;- ggplot(mpg, aes(x = class)) +
+  geom_bar()  
+
+p2 &lt;- ggplot(mpg, aes(x = hwy)) +
+  geom_histogram() 
+
+p1 + p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom1b-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+We improve the quality of the figures on the previous slide.
+
+
+```r
+# no y mapping needed when creating a bar chart
+p1 &lt;- ggplot(mpg, aes(y = class)) +
+  geom_bar(fill = daytonred, alpha = 0.2)  
+
+p2 &lt;- ggplot(mpg, aes(x = hwy)) +
+  geom_histogram(aes(y = ..density..), binwidth = density(mpg$hwy)$bw) +
+  geom_density(fill=daytonred, alpha = 0.2)
+
+p1 + p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom1c-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+What makes this really powerful is that we can add multiple geometries to a plot, thus allowing you to create complex graphics showing multiple aspects of your data.
+
+
+```r
+# plot with both points and smoothed line
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_smooth()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom2-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+**Note:**
+1. Since the aesthetics for each geom can be different, we could show multiple lines on the same plot (or with different colors, styles, etc). 
+2. It is also possible to give each geom a different data argument, so that we can show multiple data sets in the same plot. 
+
+
+If we specify an aesthetic within &lt;span Style="color:blue"&gt;ggplot()&lt;/span&gt;, it will be passed on to each geom that follows. Or we can specify certain aes within each geom, which allows us to only show certain characteristics for that specific layer (i.e. geom_point).
+
+
+---
+
+For example, we can plot both points and a smoothed line for the same x and y variable but specify unique colors within each geom:
+  
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(color = "blue") +
+  geom_smooth(color = "red")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom3-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+# color aesthetic passed to each geom layer
+p1 &lt;- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  geom_smooth(se = FALSE)
+
+# color aesthetic specified for only the geom_point layer
+p2 &lt;- ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE)
+
+p1 + p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom4a-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+
+```r
+# color aesthetic specified for only the geom_point layer
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_geom4b-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+## Statistical Transformations
+
+The following bar chart shows the frequency distribution of vehicle class. We can find that y axis was defined as the count of elements that have the particular type. This count is not part of the data set, but is instead a statistical transformation that the geom_bar automatically applies to the data. In particular, it applies the stat_count transformation.
+
+
+```r
+ggplot(mpg, aes(x = class)) +
+  geom_bar()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_bar-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+&lt;span Style="color:red"&gt;ggplot2&lt;/span&gt; supports many different statistical transformations. For example, the “identity” transformation will leave the data “as is”. We can specify which statistical transformation a geom uses by passing it as the stat argument. For example, consider our data already had the count as a variable:
+  
+
+```r
+(class_count &lt;- count(mpg, class))
+```
+
+```
+## # A tibble: 7 x 2
+##   class          n
+##   &lt;chr&gt;      &lt;int&gt;
+## 1 2seater        5
+## 2 compact       47
+## 3 midsize       41
+## 4 minivan       11
+## 5 pickup        33
+## 6 subcompact    35
+## 7 suv           62
+```
+
+---
+
+We can use `stat = "identity"` within geom_bar to plot our bar height values to this variable. Also, note that we now include n for our y variable:
+  
+
+```r
+ggplot(class_count, aes(x = class, y = n)) +
+  geom_bar(stat = "identity")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_count1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+We can also call &lt;span Style="color:blue"&gt;stat_&lt;/span&gt; functions directly to add additional layers. For example, here we create a scatter plot of highway miles for each displacement value and then use &lt;span Style="color:blue"&gt;stat_summary()&lt;/span&gt; to plot the mean highway miles at each displacement value.
+
+
+```r
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point(color = "grey") + 
+  stat_summary(fun.y = "mean", geom = "line", size = 1, linetype = "dashed")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_summary-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+## Position Adjustments
+  
+In addition to a default statistical transformation, each geom also has a default position adjustment which specifies a set of “rules” as to how different components should be positioned relative to each other. This position is noticeable in &lt;span Style="color:blue"&gt;geom_bar()&lt;/span&gt; if we map a different variable to the color visual characteristic.
+
+
+
+```r
+# bar chart of class, colored by drive (front, rear, 4-wheel)
+ggplot(mpg, aes(x = class, fill = drv)) + 
+  geom_bar()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_position1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+The &lt;span Style="color:blue"&gt;geom_bar()&lt;/span&gt; by default uses a position adjustment of `stack`, which makes each rectangle's height proportional to its value and stacks them on top of each other. 
+
+---
+
+We can use the position argument to specify what position adjustment rules to follow:
+
+
+```r
+# position = "dodge": values next to each other
+p1 &lt;- ggplot(mpg, aes(x = class, fill = drv)) + 
+  geom_bar(position = "dodge")
+
+# position = "fill": percentage chart
+p2 &lt;- ggplot(mpg, aes(x = class, fill = drv)) + 
+  geom_bar(position = "fill")
+
+p1 + p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_position2-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+**Note:** We may need to check the documentation for each particular geom to learn more about its positioning adjustments.
+
+
+---
+## Managing Scales
+
+Whenever we specify an aesthetic mapping, &lt;span Style="color:blue"&gt;ggplot()&lt;/span&gt; uses a particular **scale** to determine the range of values that the data should map to. It automatically adds a scale for each mapping to the plot.
+
+
+```r
+# color the data by engine type
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_scale1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+However, the sclae used in the figure could be changed if needed. Each scale can be represented by a function with the following name: **scale_**, followed by the name of the aesthetic property, followed by an _ and the name of the scale. A continuous scale will handle things like numeric data, whereas a discrete scale will handle things like colors.
+ 
+
+
+```r
+# same as above, with explicit scales
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  scale_x_continuous() +
+  scale_y_continuous() +
+  scale_colour_discrete()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_scale2-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+While the default scales will work fine, it is possible to explicitly add different scales to replace the defaults. For example, we can use a scale to change the direction of an axis:
+
+
+```r
+# milage relationship, ordered in reverse
+ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point() +
+  scale_x_reverse() +
+  scale_y_reverse()
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_reverse-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+Similarly, we can use &lt;span Style="color:blue"&gt;scale_x_log10()&lt;/span&gt; and &lt;span Style="color:blue"&gt;scale_x_sqrt()&lt;/span&gt; to transform the scale.
+
+---
+
+We can use scales to format the axes as well. 
+
+
+```r
+ggplot(mpg, aes(x = class, fill = drv)) + 
+  geom_bar(position = "fill") +
+  scale_y_continuous(breaks = seq(0, 1, by = .2), 
+                     labels = scales::percent) + 
+  labs(y = "Percent")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/visual_scale3-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+## Use Pre-Defined Palettees 
+
+A common parameter to change is which set of colors to use in a plot. While you can use the default coloring, a more common option is to leverage the pre-defined palettes from [colorbrewer.org](https://colorbrewer2.org/#type=sequential&amp;scheme=BuGn&amp;n=3). These color sets have been carefully designed to look good and to be viewable to people with certain forms of color blindness. We can leverage color brewer palletes by specifying the &lt;span Style="color:blue"&gt;scale_color_brewer()&lt;/span&gt;, passing the pallette as an argument.
+
+
+
+```r
+# default color brewer
+p1 &lt;- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  scale_color_brewer()
+
+# specifying color palette
+p2 &lt;- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set3")
+
+p1 + p2
+```
+
+---
+
+The figures on the previous slide.
+
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/color_brewer1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+## Coordinate Systems
+
+Similar to scales, coordinate systems are specified with functions that all start with **coord_** and are added as a layer. There are a number of different possible coordinate systems to use, including:
+
+-	coord_cartesian: the default Cartesian coordinate system, where you specify x and y values
+
+-	coord_flip: a cartesian system with the x and y flipped
+
+-	coord_fixed: a cartesian system with a “fixed” aspect ratio
+
+-	coord_polar: a plot using polar coordinates
+
+-	coord_quickmap: a coordinate system that approximates a good aspect ratio for maps. 
+
+---
+
+
+```r
+# zoom in with coord_cartesian
+p1 &lt;- ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  coord_cartesian(xlim = c(0, 5))
+
+# flip x and y axis with coord_flip
+p2 &lt;- ggplot(mpg, aes(x = class)) +
+  geom_bar() +
+  coord_flip()
+
+p1 + p2
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/coord-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+## Facets
+
+If we want to divide the information into multiple subplots, facets are ways to go. It allows us to view a separate plot for each case in a categorical variable. We can construct a plot with multiple facets by using the &lt;span Style="color:blue"&gt;facet_wrap()&lt;/span&gt;. This will produce a “row” of subplots, one for each categorical variable (the number of rows can be specified with an additional argument).
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_wrap(~ class, nrow=2)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/facets1-1.png" width="35%" style="display: block; margin: auto;" /&gt;
+
+---
+
+**NOte:** 
+1. We can use &lt;span Style="color:blue"&gt;facet_grid()&lt;/span&gt; to facet the data by more than one categorical variable. 
+2. We use a tilde (~) in our facet functions. With &lt;span Style="color:blue"&gt;facet_grid()&lt;/span&gt; the variable to the left of the tilde will be represented in the rows and the variable to the right will be represented across the columns.
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_grid(year ~ cyl)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/facets2-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+## Labels &amp; Annotations
+
+Textual annotations and labels (on the plot, axes, geometry, and legend) are crucial for understanding and presenting information. 
+
+- labs: assign title, subtitile, caption, x &amp; y labels
+
+We can add titles and axis labels to a chart using the labs() function (not labels, which is a different R function!).
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  labs(title = "Fuel Efficiency by Engine Power",
+       subtitle = "Fuel economy data from 1999 and 2008 for 38 popular models of cars",
+       x = "Engine Displacement (liters)",
+       y = "Fuel Efficiency (miles per gallon)",
+       color = "Car Type")
+```
+
+
+---
+The figure on the previous slide. 
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/labels1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+It is also possible to add labels into the plot itself (e.g., to label each point or line) by adding a new geom_text or geom_label to the plot; effectively, we are plotting an extra set of data which happen to be the variable names. 
+
+
+```r
+# a data table of each car that has best efficiency of its type
+
+best_in_class &lt;- mpg %&gt;%
+  group_by(class) %&gt;%
+  filter(row_number(desc(hwy)) == 1)
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = class)) +
+  geom_label(data = best_in_class, aes(label = model), alpha = 0.5)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/label_points-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+However, we can find that two labels overlap one-another in the top left part of the plot on the previous slide. We can use the &lt;span Style="color:blue"&gt;geom_text_repel()&lt;/span&gt; from the &lt;span Style="color:red"&gt;ggrepel&lt;/span&gt; package to help position labels.
+
+
+```r
+library(ggrepel)
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = class)) +
+  geom_text_repel(data = best_in_class, aes(label = model))
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/ggrepel-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Themes
+Whenever we want to customize titles, labels, fonts, background, grid lines, and legends, we can use themes. 
+
+
+```r
+ggplot(mpg, aes(x=displ, y=hwy)) +
+  geom_point() +
+  labs(title = "Fuel Efficiency by Engine Power",
+       x = "Engine Displacement (Liters)",
+       y = "Fuel Efficiency (Miles per gallon)") + 
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),  
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12))
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/theme1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+**Note:** 
+  
+1. We only list some key components here.
+2. See [Modify Components of A Theme](https://ggplot2.tidyverse.org/reference/theme.html){target="_blank"} and [Complete Themes](https://ggplot2.tidyverse.org/reference/ggtheme.html){target="_blank"} for more details about the use of theme.  
+
+
+---
+## Data Visualization with R Package: plotly
+
+The R package &lt;span Style="color:red"&gt;plotly&lt;/span&gt; can be used to make interactive graphic displays very easy when we already know how to use &lt;span Style="color:blue"&gt;ggplot()&lt;/span&gt; to create graphs. The following code chunk shows the interactive plots corresponding to the figures we have created in the previous section. 
+
+
+
+```r
+library(plotly)
+p1 &lt;- ggplot(mpg, aes(x=displ, y=hwy)) +
+  geom_point() 
+ggplotly(p1, width = 400, height = 300)
+```
+
+<div id="htmlwidget-9ce22bb5d6f8f9df24d3" style="width:400px;height:300px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9ce22bb5d6f8f9df24d3">{"x":{"data":[{"x":[1.8,1.8,2,2,2.8,2.8,3.1,1.8,1.8,2,2,2.8,2.8,3.1,3.1,2.8,3.1,4.2,5.3,5.3,5.3,5.7,6,5.7,5.7,6.2,6.2,7,5.3,5.3,5.7,6.5,2.4,2.4,3.1,3.5,3.6,2.4,3,3.3,3.3,3.3,3.3,3.3,3.8,3.8,3.8,4,3.7,3.7,3.9,3.9,4.7,4.7,4.7,5.2,5.2,3.9,4.7,4.7,4.7,5.2,5.7,5.9,4.7,4.7,4.7,4.7,4.7,4.7,5.2,5.2,5.7,5.9,4.6,5.4,5.4,4,4,4,4,4.6,5,4.2,4.2,4.6,4.6,4.6,5.4,5.4,3.8,3.8,4,4,4.6,4.6,4.6,4.6,5.4,1.6,1.6,1.6,1.6,1.6,1.8,1.8,1.8,2,2.4,2.4,2.4,2.4,2.5,2.5,3.3,2,2,2,2,2.7,2.7,2.7,3,3.7,4,4.7,4.7,4.7,5.7,6.1,4,4.2,4.4,4.6,5.4,5.4,5.4,4,4,4.6,5,2.4,2.4,2.5,2.5,3.5,3.5,3,3,3.5,3.3,3.3,4,5.6,3.1,3.8,3.8,3.8,5.3,2.5,2.5,2.5,2.5,2.5,2.5,2.2,2.2,2.5,2.5,2.5,2.5,2.5,2.5,2.7,2.7,3.4,3.4,4,4.7,2.2,2.2,2.4,2.4,3,3,3.5,2.2,2.2,2.4,2.4,3,3,3.3,1.8,1.8,1.8,1.8,1.8,4.7,5.7,2.7,2.7,2.7,3.4,3.4,4,4,2,2,2,2,2.8,1.9,2,2,2,2,2.5,2.5,2.8,2.8,1.9,1.9,2,2,2.5,2.5,1.8,1.8,2,2,2.8,2.8,3.6],"y":[29,29,31,30,26,26,27,26,25,28,27,25,25,25,25,24,25,23,20,15,20,17,17,26,23,26,25,24,19,14,15,17,27,30,26,29,26,24,24,22,22,24,24,17,22,21,23,23,19,18,17,17,19,19,12,17,15,17,17,12,17,16,18,15,16,12,17,17,16,12,15,16,17,15,17,17,18,17,19,17,19,19,17,17,17,16,16,17,15,17,26,25,26,24,21,22,23,22,20,33,32,32,29,32,34,36,36,29,26,27,30,31,26,26,28,26,29,28,27,24,24,24,22,19,20,17,12,19,18,14,15,18,18,15,17,16,18,17,19,19,17,29,27,31,32,27,26,26,25,25,17,17,20,18,26,26,27,28,25,25,24,27,25,26,23,26,26,26,26,25,27,25,27,20,20,19,17,20,17,29,27,31,31,26,26,28,27,29,31,31,26,26,27,30,33,35,37,35,15,18,20,20,22,17,19,18,20,29,26,29,29,24,44,29,26,29,29,29,29,23,24,44,41,29,26,28,29,29,29,28,29,26,26,26],"text":["displ: 1.8<br />hwy: 29","displ: 1.8<br />hwy: 29","displ: 2.0<br />hwy: 31","displ: 2.0<br />hwy: 30","displ: 2.8<br />hwy: 26","displ: 2.8<br />hwy: 26","displ: 3.1<br />hwy: 27","displ: 1.8<br />hwy: 26","displ: 1.8<br />hwy: 25","displ: 2.0<br />hwy: 28","displ: 2.0<br />hwy: 27","displ: 2.8<br />hwy: 25","displ: 2.8<br />hwy: 25","displ: 3.1<br />hwy: 25","displ: 3.1<br />hwy: 25","displ: 2.8<br />hwy: 24","displ: 3.1<br />hwy: 25","displ: 4.2<br />hwy: 23","displ: 5.3<br />hwy: 20","displ: 5.3<br />hwy: 15","displ: 5.3<br />hwy: 20","displ: 5.7<br />hwy: 17","displ: 6.0<br />hwy: 17","displ: 5.7<br />hwy: 26","displ: 5.7<br />hwy: 23","displ: 6.2<br />hwy: 26","displ: 6.2<br />hwy: 25","displ: 7.0<br />hwy: 24","displ: 5.3<br />hwy: 19","displ: 5.3<br />hwy: 14","displ: 5.7<br />hwy: 15","displ: 6.5<br />hwy: 17","displ: 2.4<br />hwy: 27","displ: 2.4<br />hwy: 30","displ: 3.1<br />hwy: 26","displ: 3.5<br />hwy: 29","displ: 3.6<br />hwy: 26","displ: 2.4<br />hwy: 24","displ: 3.0<br />hwy: 24","displ: 3.3<br />hwy: 22","displ: 3.3<br />hwy: 22","displ: 3.3<br />hwy: 24","displ: 3.3<br />hwy: 24","displ: 3.3<br />hwy: 17","displ: 3.8<br />hwy: 22","displ: 3.8<br />hwy: 21","displ: 3.8<br />hwy: 23","displ: 4.0<br />hwy: 23","displ: 3.7<br />hwy: 19","displ: 3.7<br />hwy: 18","displ: 3.9<br />hwy: 17","displ: 3.9<br />hwy: 17","displ: 4.7<br />hwy: 19","displ: 4.7<br />hwy: 19","displ: 4.7<br />hwy: 12","displ: 5.2<br />hwy: 17","displ: 5.2<br />hwy: 15","displ: 3.9<br />hwy: 17","displ: 4.7<br />hwy: 17","displ: 4.7<br />hwy: 12","displ: 4.7<br />hwy: 17","displ: 5.2<br />hwy: 16","displ: 5.7<br />hwy: 18","displ: 5.9<br />hwy: 15","displ: 4.7<br />hwy: 16","displ: 4.7<br />hwy: 12","displ: 4.7<br />hwy: 17","displ: 4.7<br />hwy: 17","displ: 4.7<br />hwy: 16","displ: 4.7<br />hwy: 12","displ: 5.2<br />hwy: 15","displ: 5.2<br />hwy: 16","displ: 5.7<br />hwy: 17","displ: 5.9<br />hwy: 15","displ: 4.6<br />hwy: 17","displ: 5.4<br />hwy: 17","displ: 5.4<br />hwy: 18","displ: 4.0<br />hwy: 17","displ: 4.0<br />hwy: 19","displ: 4.0<br />hwy: 17","displ: 4.0<br />hwy: 19","displ: 4.6<br />hwy: 19","displ: 5.0<br />hwy: 17","displ: 4.2<br />hwy: 17","displ: 4.2<br />hwy: 17","displ: 4.6<br />hwy: 16","displ: 4.6<br />hwy: 16","displ: 4.6<br />hwy: 17","displ: 5.4<br />hwy: 15","displ: 5.4<br />hwy: 17","displ: 3.8<br />hwy: 26","displ: 3.8<br />hwy: 25","displ: 4.0<br />hwy: 26","displ: 4.0<br />hwy: 24","displ: 4.6<br />hwy: 21","displ: 4.6<br />hwy: 22","displ: 4.6<br />hwy: 23","displ: 4.6<br />hwy: 22","displ: 5.4<br />hwy: 20","displ: 1.6<br />hwy: 33","displ: 1.6<br />hwy: 32","displ: 1.6<br />hwy: 32","displ: 1.6<br />hwy: 29","displ: 1.6<br />hwy: 32","displ: 1.8<br />hwy: 34","displ: 1.8<br />hwy: 36","displ: 1.8<br />hwy: 36","displ: 2.0<br />hwy: 29","displ: 2.4<br />hwy: 26","displ: 2.4<br />hwy: 27","displ: 2.4<br />hwy: 30","displ: 2.4<br />hwy: 31","displ: 2.5<br />hwy: 26","displ: 2.5<br />hwy: 26","displ: 3.3<br />hwy: 28","displ: 2.0<br />hwy: 26","displ: 2.0<br />hwy: 29","displ: 2.0<br />hwy: 28","displ: 2.0<br />hwy: 27","displ: 2.7<br />hwy: 24","displ: 2.7<br />hwy: 24","displ: 2.7<br />hwy: 24","displ: 3.0<br />hwy: 22","displ: 3.7<br />hwy: 19","displ: 4.0<br />hwy: 20","displ: 4.7<br />hwy: 17","displ: 4.7<br />hwy: 12","displ: 4.7<br />hwy: 19","displ: 5.7<br />hwy: 18","displ: 6.1<br />hwy: 14","displ: 4.0<br />hwy: 15","displ: 4.2<br />hwy: 18","displ: 4.4<br />hwy: 18","displ: 4.6<br />hwy: 15","displ: 5.4<br />hwy: 17","displ: 5.4<br />hwy: 16","displ: 5.4<br />hwy: 18","displ: 4.0<br />hwy: 17","displ: 4.0<br />hwy: 19","displ: 4.6<br />hwy: 19","displ: 5.0<br />hwy: 17","displ: 2.4<br />hwy: 29","displ: 2.4<br />hwy: 27","displ: 2.5<br />hwy: 31","displ: 2.5<br />hwy: 32","displ: 3.5<br />hwy: 27","displ: 3.5<br />hwy: 26","displ: 3.0<br />hwy: 26","displ: 3.0<br />hwy: 25","displ: 3.5<br />hwy: 25","displ: 3.3<br />hwy: 17","displ: 3.3<br />hwy: 17","displ: 4.0<br />hwy: 20","displ: 5.6<br />hwy: 18","displ: 3.1<br />hwy: 26","displ: 3.8<br />hwy: 26","displ: 3.8<br />hwy: 27","displ: 3.8<br />hwy: 28","displ: 5.3<br />hwy: 25","displ: 2.5<br />hwy: 25","displ: 2.5<br />hwy: 24","displ: 2.5<br />hwy: 27","displ: 2.5<br />hwy: 25","displ: 2.5<br />hwy: 26","displ: 2.5<br />hwy: 23","displ: 2.2<br />hwy: 26","displ: 2.2<br />hwy: 26","displ: 2.5<br />hwy: 26","displ: 2.5<br />hwy: 26","displ: 2.5<br />hwy: 25","displ: 2.5<br />hwy: 27","displ: 2.5<br />hwy: 25","displ: 2.5<br />hwy: 27","displ: 2.7<br />hwy: 20","displ: 2.7<br />hwy: 20","displ: 3.4<br />hwy: 19","displ: 3.4<br />hwy: 17","displ: 4.0<br />hwy: 20","displ: 4.7<br />hwy: 17","displ: 2.2<br />hwy: 29","displ: 2.2<br />hwy: 27","displ: 2.4<br />hwy: 31","displ: 2.4<br />hwy: 31","displ: 3.0<br />hwy: 26","displ: 3.0<br />hwy: 26","displ: 3.5<br />hwy: 28","displ: 2.2<br />hwy: 27","displ: 2.2<br />hwy: 29","displ: 2.4<br />hwy: 31","displ: 2.4<br />hwy: 31","displ: 3.0<br />hwy: 26","displ: 3.0<br />hwy: 26","displ: 3.3<br />hwy: 27","displ: 1.8<br />hwy: 30","displ: 1.8<br />hwy: 33","displ: 1.8<br />hwy: 35","displ: 1.8<br />hwy: 37","displ: 1.8<br />hwy: 35","displ: 4.7<br />hwy: 15","displ: 5.7<br />hwy: 18","displ: 2.7<br />hwy: 20","displ: 2.7<br />hwy: 20","displ: 2.7<br />hwy: 22","displ: 3.4<br />hwy: 17","displ: 3.4<br />hwy: 19","displ: 4.0<br />hwy: 18","displ: 4.0<br />hwy: 20","displ: 2.0<br />hwy: 29","displ: 2.0<br />hwy: 26","displ: 2.0<br />hwy: 29","displ: 2.0<br />hwy: 29","displ: 2.8<br />hwy: 24","displ: 1.9<br />hwy: 44","displ: 2.0<br />hwy: 29","displ: 2.0<br />hwy: 26","displ: 2.0<br />hwy: 29","displ: 2.0<br />hwy: 29","displ: 2.5<br />hwy: 29","displ: 2.5<br />hwy: 29","displ: 2.8<br />hwy: 23","displ: 2.8<br />hwy: 24","displ: 1.9<br />hwy: 44","displ: 1.9<br />hwy: 41","displ: 2.0<br />hwy: 29","displ: 2.0<br />hwy: 26","displ: 2.5<br />hwy: 28","displ: 2.5<br />hwy: 29","displ: 1.8<br />hwy: 29","displ: 1.8<br />hwy: 29","displ: 2.0<br />hwy: 28","displ: 2.0<br />hwy: 29","displ: 2.8<br />hwy: 26","displ: 2.8<br />hwy: 26","displ: 3.6<br />hwy: 26"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":25.7412480974125,"r":7.30593607305936,"b":39.6955859969559,"l":37.2602739726027},"plot_bgcolor":"rgba(235,235,235,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1.33,7.27],"tickmode":"array","ticktext":["2","3","4","5","6","7"],"tickvals":[2,3,4,5,6,7],"categoryorder":"array","categoryarray":["2","3","4","5","6","7"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"displ","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[10.4,45.6],"tickmode":"array","ticktext":["20","30","40"],"tickvals":[20,30,40],"categoryorder":"array","categoryarray":["20","30","40"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"hwy","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","width":400,"height":300,"barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"473057e76948":{"x":{},"y":{},"type":"scatter"}},"cur_data":"473057e76948","visdat":{"473057e76948":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+
+--
+name: exploration
+
+# Session 3: Data Exploration with R Package: DataExplorer
+
+In data science, it is important to get to know your data before advanced modeling or further analysis. We should understand what the data are about, what variables we have, the size of the data, how many missing values, what is the data type of each variable, any possible relationships between variables and anything unusual or interesting in the data.
+
+We will use the [Medical Cost Personal Dataset](https://www.kaggle.com/datasets/mirichoi0218/insurance")
+to go over the use of functions in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;. For the demonstration purpose, we modified this data by having random missing values in some variables. 
+
+---
+## Import the package, load the data and get a glimpse of the data
+
+
+```r
+library(DataExplorer)
+insurance &lt;- read_csv("https://raw.githubusercontent.com/Ying-Ju/R_Data_Analytics_Series_NTPU/main/insurance.csv")
+glimpse(insurance)
+```
+
+```
+## Rows: 1,338
+## Columns: 7
+## $ age      &lt;dbl&gt; 19, 18, 28, NA, 32, NA, 46, 37, 37, 60, 25, 62, NA, 56, 27, 1~
+## $ sex      &lt;chr&gt; "female", "male", "male", "male", "male", "female", "female",~
+## $ bmi      &lt;dbl&gt; 27.900, 33.770, 33.000, 22.705, 28.880, 25.740, 33.440, 27.74~
+## $ children &lt;dbl&gt; 0, 1, 3, 0, 0, 0, 1, 3, 2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0~
+## $ smoker   &lt;chr&gt; "yes", "no", "no", "no", "no", "no", "no", "no", "no", "no", ~
+## $ region   &lt;chr&gt; "southwest", "southeast", "southeast", "northwest", "northwes~
+## $ charges  &lt;dbl&gt; 16884.924, 1725.552, 4449.462, 21984.471, 3866.855, 3756.622,~
+```
+
+---
+
+First, we check the basic description for the data using the function &lt;span Style="color:blue"&gt;plot_intro()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;. 
+
+
+```r
+plot_intro(insurance)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/intro-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+Then, we study the distribution of missing values in the data using the function &lt;span Style="color:blue"&gt;plot_missing()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;. 
+
+
+```r
+plot_missing(insurance)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/missingdist-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+Since there are 7 variables, we will study all variables in the data.
+
+
+---
+
+Now, we study the frequency distribution of all categorical variables in the data using the function &lt;span Style="color:blue"&gt;plot_bar()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;. 
+
+
+```r
+plot_bar(insurance)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_cat-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+The following code shows the distribution of sum of charges by the categorical variables in the data, individually. 
+
+
+```r
+plot_bar(insurance, with="charges")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_bar1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+Next, we study the distribution of all quantitative variables in the data using the function &lt;span Style="color:blue"&gt;plot_histogram()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;.
+
+
+```r
+plot_histogram(insurance, ncol=2) 
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_num-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+We study the distributions of age, bmi, and charges with respect to region individually using the function &lt;span Style="color:blue"&gt;plot_boxplot()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;.
+
+
+```r
+insurance_Q &lt;- insurance %&gt;% 
+               select(age, bmi, charges, region) %&gt;% 
+               drop_na()
+plot_boxplot(insurance_Q, by = "region")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_boxplot-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+We can study the association between any quantitative variable with a given response variable in the data using the function &lt;span Style="color:blue"&gt;plot_scatterplot()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;. Here, we study the association between charges and other quantitative variables in the data.   
+
+
+```r
+plot_scatterplot(insurance_Q %&gt;% select(-region), by = "charges")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_scatterplot0-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+We can get a scatterplot with sample observations as well. 
+
+```r
+plot_scatterplot(insurance_Q %&gt;% select(-region), by = "charges", sampled_rows=100)
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_scatterplot1-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+plot_scatterplot(insurance_Q %&gt;% 
+                   filter(region=="northwest") %&gt;% 
+                   select(-region), 
+                 by = "charges")
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_scatterplot2-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+The above figure only shows the association between charges and other quantitative variables in the northwest. 
+
+---
+
+We can check the correlation of all quantitative variables in the data using the function &lt;span Style="color:blue"&gt;plot_correlation()&lt;/span&gt; in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt;.
+
+
+```r
+plot_correlation(insurance_Q %&gt;% 
+                   select(-region), 
+                 cor_args = list( "use" = "complete.obs"))
+```
+
+&lt;img src="data_analytics_workshop_2022_files/figure-html/EDA_corr-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+
+In you are new to data exploration and have no ideas about where to start. &lt;span Style="color:blue"&gt;create_report()&lt;/span&gt; function in the package &lt;span Style="color:red"&gt;DataExplorer&lt;/span&gt; can help to create a report for the data exploration of the data.  
+
+
+```r
+create_report(insurance, output_file = "report.html", 
+              output_dir = "C:\Users\Tessa\Document")
+```
+
+
+**Note:** Use &lt;span Style="color:blue"&gt;help("create_report")&lt;/span&gt; to find the usage of &lt;span Style="color:blue"&gt;create_report()&lt;/span&gt;. 
+
+---
+name: rmarkdown
+
+# Session 4: Learn R Rmarkdown Presentation
+
+In this session, we will introduce 
+
+1. R markdown Presentation
+2. Flex Dashboard
+
+### What is R markdown?
+
+R Markdown is a file format for creating dynamic documents with R and RStudio. R Markdown documents are written in Markdown which has easy-to-write plain text format with embedded R code.
+
+---
+## Rmarkdown Presentation 
+
+In order to create a Rmarkdown presentation, we click &lt;span Style="color:#3384FF"&gt;File&lt;/span&gt; and then find &lt;span Style="color:#3384FF"&gt;New File&lt;/span&gt; and then &lt;span Style="color:#3384FF"&gt;R markdown ...&lt;/span&gt; There are four options:
+
+- Html (ioslides)
+
+This format allows us to create a slide show and the slides could be broken up into sections by using the heading tags # and ##. If a header is not needed, a new slide could be created using a horizontal rule (---).
+
+- Html (Slidy)
+
+Similar to ioslides, this format allows to create a slide show broken up into sections by using the heading tag ##. If a header is not needed, a new slide could be created using a horizontal rule (---). A Slidy presentation gives a table of content while An ioslides presentation doesn't.  
+
+- PDF (beamer)
+
+This format allows to create a beamer presenation (LaTex). The slides could be broken up into sections by using the heading tags # and ##. If a header is not needed, a new slide could be created using a horizontal rule (---).
+
+- PowerPoint
+
+---
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="Figures/presentation.JPG" alt="Creating a Rmarkdown Presentation" width="60%" height="60%" /&gt;
+&lt;p class="caption"&gt;Creating a Rmarkdown Presentation&lt;/p&gt;
+&lt;/div&gt;
+
+---
+In the following, we show an example of the header of a Rmarkdown file.
+
+
+&lt;img src="Figures/Rmarkdown_heading.JPG" width="50%" height="50%" style="display: block; margin: auto;" /&gt;
+
+We can use the output option to manipulate which presentation we would like to have. 
+
+- output: ioslides_presentation
+- output: slidy_presentation
+- output: beamer_presentation
+- output: powerpoint_presentation
+
+
+To render an R Markdown document into its final output format, we can click the &lt;span Style="color:#3384FF"&gt;Knit&lt;/span&gt; button to render the document in RStudio and RStudio will show a preview of it. 
+
+
+The further settings for presentations could be found at [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/presentations.html).
+
+---
+### xaringan Presentation
+
+A easy way to start creating a xaringan presentation is to use the R markdown template with &lt;span Style="color:#3384FF"&gt;Ninja Presentation&lt;/span&gt; or &lt;span Style="color:#3384FF"&gt;Ninja Themed Presentation&lt;/span&gt;.
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="Figures/xaringan.JPG" alt="Creating a Rmarkdown Presentation" width="40%" height="40%" /&gt;
+&lt;p class="caption"&gt;Creating a Rmarkdown Presentation&lt;/p&gt;
+&lt;/div&gt;
+
+A comprehensive tutorial regarding xaringan presentation could be found at [xaringan Presentation](https://bookdown.org/yihui/rmarkdown/xaringan.html).
+
+---
+## Flex Dashboard
+
+A easy way to start creating a Flex dashboard is to use the R markdown template with &lt;span Style="color:#3384FF"&gt;Flex Dashboard&lt;/span&gt;.
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="Figures/dashboard.JPG" alt="Creating a Flex Dashboard" width="30%" height="30%" /&gt;
+&lt;p class="caption"&gt;Creating a Flex Dashboard&lt;/p&gt;
+&lt;/div&gt;
+
+- We can use # to create multiple pages. 
+- We can use &lt;span Style="color:#3384FF"&gt;orientation&lt;/span&gt; in the &lt;span Style="color:#3384FF"&gt;output&lt;/span&gt; options to specify the layout to be &lt;span Style="color:#3384FF"&gt;columns&lt;/span&gt; or &lt;span Style="color:#3384FF"&gt;rows&lt;/span&gt;. 
+
+A comprehensive tutorial regarding Flex Dashboard could be found at [flexdashboard](https://pkgs.rstudio.com/flexdashboard/){target="_blank"}
+
+---
+name: github
+
+# Session 5: A Quick Overview of GitHub
+
+In this session, we will provide a quick overview of GitHub. It will cover some basic usages of GitHub Desktop due to the time limitation of the class. 
+
+### What is Git?
+
+Git is a version control system that allows us to track changes in any set of files. It is typically used by programmers who are working on source code together. 
+
+
+### What is GitHub?
+
+GitHub is a version control and collaboration tools for programming. It allows us to collaborate on projects from any location with other people. 
+
+
+---
+## Register for a GitHub account
+
+We can register for a GitHub account at [www.github.com](https://github.com/){target="_blank"}.
+
+&lt;img src="Figures/GitHub.JPG" width="70%" height="70%" style="display: block; margin: auto;" /&gt;
+
+---
+## Install and Set up GitHub Desktop
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;iframe src="https://desktop.github.com/" width="80%" height="450px" data-external="1"&gt;&lt;/iframe&gt;
+&lt;p class="caption"&gt;Installing GitHub Desktop from https://desktop.github.com/&lt;/p&gt;
+&lt;/div&gt;
+
+---
+## Create a repository, track changes, and explore a file's history
+
+We will create a process that shows how to create a repository, track changes, and explore a file's history. 
+
+Here is an example that shows how GitHub Desktop looks like. 
+
+&lt;img src="Figures/GitHub_desktop.JPG" width="40%" height="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+- Current repository
+- Current branch
+- Fetch origin
+
+Fetch downloads the most recent updates from origin but it does not update our local working copy with the changes. After we click Fetch origin, the button changes to Pull Origin. Clicking Pull Origin will update our local working copy with the fetched updates.
+
+- Summary (required) &amp; Description (optional)
+- Commit to master
+
+When we commit the changes, the list of uncommitted changes was gone from the left pane. We have, however, just committed the changes locally. The commit must be pushed to the remote (origin) repository.
+
+---
+## Use GitHub Pages to Publish a html file
+
+The html file needs to be named as &lt;span Style="Color:#ff8000"&gt;index.html&lt;/span&gt;. 
+
+1. Sign in our GitHub account at [www.github.com](https://github.com/){target="_blank"}
+2. Navigate to the repository where our html file is
+3. Click &lt;span Style="color:#3384FF"&gt;Settings&lt;/span&gt; and find &lt;span Style="color:#3384FF"&gt;Pages&lt;/span&gt; from the left menu 
+4. Under "GitHub Pages", use the None or Branch drop-down menu and select a publishing source
+5. Click &lt;span Style="color:#3384FF"&gt;Save&lt;/span&gt;
+
+&lt;img src="Figures/GitHub_Pages.JPG" width="50%" height="50%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## Thanks
+
+.pull-left[
+- Please do not hesitate to contact Dr. Chen if you have questions pertaining to learning R or other languages.  Please email me at &lt;a href="mailto:ychen@udayton.edu"&gt;&lt;i class="fa fa-paper-plane fa-fw"&gt;&lt;/i&gt;&amp;nbsp; ychen4@udayton.edu&lt;/a&gt;.
+
+- The R code used in this presentation can be found [here](https://raw.githubusercontent.com/Ying-Ju/MathClub.github.io/main/job_analysis.R).
+
+- Slides were created via the R package **xaringan**, with styling based on:  
+  * [xariganthemer](https://cran.r-project.org/web/packages/xaringanthemer/vignettes/xaringanthemer.html) package, and  
+  * Alison Hill's [@apreshill](https://github.com/apreshill/) CSS resources for customizing themes and fonts  
+
+- The formatting of slides is provided by Dr. Fadel M. Megahed [@fmegahed](https://github.com/fmegahed). 
+]
+
+.pull-right[
+&lt;img src="https://c.tenor.com/XgehSxepiagAAAAC/are-there-any-questions-eric-cartman.gif" width="350" height="350" /&gt;
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
